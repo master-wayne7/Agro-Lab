@@ -1,0 +1,4 @@
+0 Soyabean Healthy
+1 Soyabean Rust or bacterial
+2 Soyabean Yellow Mosaic
+3 Soyabean deathSyndrome or frogeye leaf spot

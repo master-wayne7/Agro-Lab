@@ -1,0 +1,4 @@
+0 Groundnut Healthy
+1 Groundnut Late Leaf Spot
+2 Groundnut Nutrition Deficiency
+3 Groundnut Rust

@@ -1,0 +1,3 @@
+0 Coffee Healthy
+1 Coffee Miner
+2 Coffee Rust

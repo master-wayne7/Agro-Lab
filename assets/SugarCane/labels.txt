@@ -1,0 +1,4 @@
+0 Sugarcane Healthy
+1 Sugarcane RedRot
+2 Sugarcane Rust
+3 Sugarcane Bacterial Blight

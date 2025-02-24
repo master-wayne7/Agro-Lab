@@ -1,0 +1,3 @@
+0 Cotton Bacterial Blight
+1 Cotton Curl Virus
+2 Cotton Healthy

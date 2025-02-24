@@ -1,0 +1,3 @@
+0 Wheat Brown Rust
+1 Wheat Healthy
+2 Wheat Yellow Rust
