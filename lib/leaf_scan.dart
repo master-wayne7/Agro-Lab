@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:image/image.dart' as img;
 
 import 'app_info_screen.dart';
+import 'ai_chat_screen.dart';
 
 class LeafScan extends StatefulWidget {
   final String modelName;
@@ -45,6 +46,7 @@ class _LeafScanState extends State<LeafScan> {
   String disease_name = "";
   String disease_url = "";
   bool result_visibility = false;
+  String disease_severity = "";
 
   String ModelPathSelector() {
     // Using a map for cleaner and more maintainable code
@@ -231,6 +233,9 @@ class _LeafScanState extends State<LeafScan> {
           name = _labels![maxIndex];
           confidence = maxScore.toStringAsFixed(2);
           split_model_result();
+
+          // Calculate disease severity based on confidence score
+          calculateDiseaseSeverity(double.parse(confidence));
         }
       });
     } catch (e) {
@@ -242,9 +247,48 @@ class _LeafScanState extends State<LeafScan> {
     List temp = name.split(' ');
     crop_name = temp[0];
     temp.removeAt(0);
+
+    // Check if the first word of the disease is the same as the crop name
+    // This handles cases like "Apple Apple Scab" -> should be just "Apple Scab"
+    if (temp.isNotEmpty && temp[0].toLowerCase() == modelName.toLowerCase()) {
+      temp.removeAt(0);
+    }
+
     disease_name = temp.join(' ');
-    // debugPrint(crop_name);
-    // debugPrint(disease_name);
+
+    // If disease name is empty, it might be a healthy plant
+    if (disease_name.isEmpty) {
+      disease_name = "healthy";
+    }
+
+    // debugPrint("Crop: $crop_name, Disease: $disease_name");
+  }
+
+  void calculateDiseaseSeverity(double confidenceScore) {
+    if (disease_name.toLowerCase() == "healthy") {
+      disease_severity = "0%";
+      return;
+    }
+
+    // Convert confidence score to severity percentage
+    // This is a simple estimation - you might want to refine this logic
+    double severityPercentage = confidenceScore * 100;
+
+    // Adjust severity based on confidence thresholds
+    if (confidenceScore > 0.8) {
+      severityPercentage = 75 + (confidenceScore - 0.8) * 125; // 75%-100% severity
+    } else if (confidenceScore > 0.6) {
+      severityPercentage = 50 + (confidenceScore - 0.6) * 125; // 50%-75% severity
+    } else if (confidenceScore > 0.4) {
+      severityPercentage = 25 + (confidenceScore - 0.4) * 125; // 25%-50% severity
+    } else {
+      severityPercentage = confidenceScore * 62.5; // 0%-25% severity
+    }
+
+    // Cap at 100%
+    if (severityPercentage > 100) severityPercentage = 100;
+
+    disease_severity = "${severityPercentage.toStringAsFixed(0)}%";
   }
 
   void closeModel() async {
@@ -607,6 +651,22 @@ class _LeafScanState extends State<LeafScan> {
                                 ),
                                 textAlign: TextAlign.justify,
                               ),
+                              disease_name.toLowerCase() != "healthy"
+                                  ? Text(
+                                      'Severity : $disease_severity',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: disease_severity.startsWith("7") || disease_severity.startsWith("8") || disease_severity.startsWith("9")
+                                            ? Colors.red.shade800
+                                            : disease_severity.startsWith("5") || disease_severity.startsWith("6")
+                                                ? Colors.orange.shade800
+                                                : Colors.green.shade800,
+                                      ),
+                                      textAlign: TextAlign.justify,
+                                    )
+                                  : Container(),
+                              SizedBox(height: 10),
                               Row(
                                 children: [
                                   NeumorphicIcon(
@@ -634,7 +694,57 @@ class _LeafScanState extends State<LeafScan> {
                                     ),
                                   ),
                                 ],
-                              )
+                              ),
+                              // Add AI Chat button only for infected plants
+                              disease_name.toLowerCase() != "healthy"
+                                  ? Column(
+                                      children: [
+                                        SizedBox(height: 15),
+                                        NeumorphicButton(
+                                          style: NeumorphicStyle(
+                                            color: accentColor,
+                                            depth: 2,
+                                            boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => AIChatScreen(
+                                                  cropName: modelName,
+                                                  diseaseName: disease_name,
+                                                  severity: disease_severity,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.smart_toy_rounded,
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
+                                                SizedBox(width: 10),
+                                                Text(
+                                                  "Ask AI for treatment",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Container(),
                             ],
                           ),
                         ],
